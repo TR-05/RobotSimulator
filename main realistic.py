@@ -13,7 +13,7 @@ mass = 15 / 2.205
 mu = 0.1
 inertia = 0.1
 track_radius = 6 * 0.0254
-gear_ratio = 1/1.5
+gear_ratio = 1/2.0
 wheel_radius = 2 * 0.0254
 num_motors_per_side = 3
 
@@ -72,10 +72,10 @@ sim = sys.to_discrete(dt)
 
 
 def inches_to_pixels(inches):
-    return inches * (4881.0 / 140.41) / 5
+    return inches * (4476.0 / 140.41) / 5 #4881.0 for the OU image
 
 def pixels_to_inches(pixels):
-    return pixels * (140.41 / 4881.0) * 5
+    return pixels * (140.41 / 4476.0) * 5
 
 dt = 0.01
 class Pose:
@@ -117,15 +117,29 @@ class Pose:
             turn_radius = track_radius * \
                 (leftSpeed + rightSpeed) / (rightSpeed - leftSpeed)
             ICC_x = self.x_pos - inches_to_pixels(turn_radius/0.0254) * math.sin(self.theta)
-            ICC_y = self.y_pos + \
-                inches_to_pixels(turn_radius/0.0254) * math.cos(self.theta)
+            ICC_y = self.y_pos + inches_to_pixels(turn_radius/0.0254) * math.cos(self.theta)
 
             # draw line to ICC
             # print((int(
             #     ICC_x), int(ICC_y)))
-            pygame.draw.circle(screen, (0, 255, 0), (int(
-                ICC_x), int(ICC_y)), abs(int(turn_radius)), 1)
 
+
+            # all this is to stop the program from crashing if the radius or ICC is too large
+            # I dont know why large magnitude values cause crashes but they do, and this seems to fix that
+            temp_ICC_x = int(ICC_x)
+            temp_ICC_y = int(ICC_y)
+            temp_radius = abs(int(turn_radius))
+            big_num = 2000000000
+            if (abs(temp_ICC_x) > big_num):
+                temp_ICC_x = big_num * math.copysign(1, temp_ICC_x)
+            if (abs(temp_ICC_y) > big_num):
+                temp_ICC_y = big_num * math.copysign(1, temp_ICC_y)
+            if (abs(temp_radius) > 10320528):
+                temp_radius = 10320528 * math.copysign(1, temp_radius)
+            #print(int(ICC_x), int(ICC_y), abs(int(turn_radius)))
+            #print(temp_ICC_x, temp_ICC_y, temp_radius)
+
+            pygame.draw.circle(screen, (0, 255, 0), (temp_ICC_x, temp_ICC_y), temp_radius, 1)
             vel = (leftSpeed + rightSpeed) / 2
             omega = (rightSpeed - leftSpeed) / (track_radius * 2)
 
@@ -162,9 +176,19 @@ class Pose:
     def draw(self):
         robot_size = inches_to_pixels(15)
         image = pygame.Surface((robot_size, robot_size), pygame.SRCALPHA)
-        pygame.draw.polygon(image, (255, 255, 255), ((0, 0), (0, robot_size), (robot_size, robot_size), (robot_size, 0)))
+
+        robot_size = inches_to_pixels(15)
+
+        #use logo instead of white square
+        image = pygame.image.load('PixelLogo.png')  # Load the image
+        image = pygame.transform.scale(image, (robot_size, robot_size))  # Resize the image
+        image = pygame.transform.rotate(image, -90)  # Rotate the image
+        image.blit(image, ((0, 0), (robot_size, robot_size)))
+
+        #white square code
+        #pygame.draw.polygon(image, (255, 255, 255), ((0, 0), (0, robot_size), (robot_size, robot_size), (robot_size, 0)))
         # Mark front of robot
-        pygame.draw.polygon(image, (255, 0, 0), ((robot_size, 0), (robot_size - inches_to_pixels(2), 0), (robot_size - inches_to_pixels(2), robot_size), (robot_size, robot_size)))
+        #pygame.draw.polygon(image, (255, 0, 0), ((robot_size, 0), (robot_size - inches_to_pixels(2), 0), (robot_size - inches_to_pixels(2), robot_size), (robot_size, robot_size)))
         orig_image = image
 
         rect = image.get_rect()
@@ -191,7 +215,7 @@ pygame.init()
 screen = pygame.display.set_mode((1000, 1000))
 clock = pygame.time.Clock()
 
-bg = pygame.image.load("Over_Under_Render.png")
+bg = pygame.image.load("High_Stakes_Render.png")
 bg = pygame.transform.scale(bg, (1000, 1000))
 
 image = pygame.Surface((100, 100), pygame.SRCALPHA)
@@ -281,8 +305,12 @@ while True:
     keys=pygame.key.get_pressed()
     screen.blit(bg, (0, 0))
 
-    left_input = -joystick.get_axis(1) * 12
-    right_input = -joystick.get_axis(3)  * 12
+
+    left_input = -joystick.get_axis(1) * 12 #tank
+    right_input = -joystick.get_axis(3)  * 12 #tank
+    #left_input = -(joystick.get_axis(1) - joystick.get_axis(0)) * 12 #arcade
+    #right_input = -(joystick.get_axis(1) + joystick.get_axis(0))  * 12 #arcade
+
     # left_input, right_input = wheel_speeds(*get_cur_vel(curDist))
     if i == -1:
         left_input = 0

@@ -172,6 +172,16 @@ class Pose:
         # self.y += math.cos(self.theta ) * centrifugalAccel * dt
         self.x_pos += inches_to_pixels(xSpeed / 0.0254)
         self.y_pos += inches_to_pixels(ySpeed / 0.0254)
+
+        robot_size = inches_to_pixels(15) / 2
+        if (self.x_pos < inches_to_pixels(0) + robot_size):
+            self.x_pos = inches_to_pixels(0) + robot_size
+        if (self.x_pos > inches_to_pixels(156) - robot_size):
+            self.x_pos = inches_to_pixels(156) - robot_size
+        if (self.y_pos < inches_to_pixels(0) + robot_size):
+            self.y_pos = inches_to_pixels(0) + robot_size
+        if (self.y_pos > inches_to_pixels(156) - robot_size):
+            self.y_pos = inches_to_pixels(156) - robot_size
         self.theta += angularSpeed
     def draw(self):
         robot_size = inches_to_pixels(15)
@@ -225,7 +235,7 @@ pygame.draw.polygon(image, (255, 0, 0), ((100, 0), (90, 0), (90, 100), (100, 100
 orig_image = image
 
 
-robot = Pose(inches_to_pixels(72), inches_to_pixels(72), -3.14159 / 2)
+robot = Pose(inches_to_pixels(40), inches_to_pixels(136), -3.14159 / 2)
 counter = 0
 
 

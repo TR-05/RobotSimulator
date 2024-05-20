@@ -128,18 +128,18 @@ class Pose:
             # I dont know why large magnitude values cause crashes but they do, and this seems to fix that
             temp_ICC_x = int(ICC_x)
             temp_ICC_y = int(ICC_y)
-            temp_radius = abs(int(turn_radius))
-            big_num = 2000000000
+            temp_radius = abs(int(turn_radius/0.0254))
+            big_num = 10000
             if (abs(temp_ICC_x) > big_num):
                 temp_ICC_x = big_num * math.copysign(1, temp_ICC_x)
             if (abs(temp_ICC_y) > big_num):
                 temp_ICC_y = big_num * math.copysign(1, temp_ICC_y)
-            if (abs(temp_radius) > 10320528):
-                temp_radius = 10320528 * math.copysign(1, temp_radius)
+            if (abs(temp_radius) > big_num):
+                temp_radius = big_num * math.copysign(1, temp_radius)
             #print(int(ICC_x), int(ICC_y), abs(int(turn_radius)))
-            #print(temp_ICC_x, temp_ICC_y, temp_radius)
+            print(temp_ICC_x, temp_ICC_y, temp_radius)
 
-            pygame.draw.circle(screen, (0, 255, 0), (temp_ICC_x, temp_ICC_y), temp_radius, 1)
+            pygame.draw.circle(screen, (0, 255, 0), (temp_ICC_x, temp_ICC_y), 3, 1)
             vel = (leftSpeed + rightSpeed) / 2
             omega = (rightSpeed - leftSpeed) / (track_radius * 2)
 
@@ -186,7 +186,6 @@ class Pose:
     def draw(self):
         robot_size = inches_to_pixels(15)
         image = pygame.Surface((robot_size, robot_size), pygame.SRCALPHA)
-
         robot_size = inches_to_pixels(15)
 
         #use logo instead of white square
